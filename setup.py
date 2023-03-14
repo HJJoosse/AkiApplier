@@ -9,7 +9,9 @@ setup(
     "numpy",
     "pandas",
     "matplotlib",
-    "seaborn"
+    "seaborn",
+    "python-dotenv",
+    "plotly"
     ],
     version='0.1.0',
     description='Applying KDIGO guidelines to creatinine data',
