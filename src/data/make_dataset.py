@@ -64,7 +64,7 @@ class AKIPreprocessor:
         self.merged_data = self.merged_data.dropna(subset = ['age','gender'])
         self.merged_data = self.merged_data.sort_values(by = ['pat_id','lab_dt'])
 
-    def __call__(self,pat_cols:list, creat_cols:list):
+    def fetch_data(self,pat_cols:list, creat_cols:list):
         self._filter_data()
         self._select_cols(pat_cols,creat_cols)
         self._merge_data()
@@ -86,5 +86,5 @@ if __name__ == '__main__':
     creat_cols=['pat_id','ed_visit_dt','lab_result','afnametijd','lab_dt','lab_testunit']
 
     ap = AKIPreprocessor(ORG_DATA)
-    out_data = ap(pat_cols=pat_cols, creat_cols=creat_cols)
+    out_data = ap.fetch_data(pat_cols=pat_cols, creat_cols=creat_cols)
     out_data.reset_index(drop = True).to_feather(PROC_DATA)

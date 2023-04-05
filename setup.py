@@ -11,7 +11,8 @@ setup(
     "matplotlib",
     "seaborn",
     "python-dotenv",
-    "plotly"
+    "plotly",
+    "scikit-learn"
     ],
     version='0.1.0',
     description='Applying KDIGO guidelines to creatinine data',

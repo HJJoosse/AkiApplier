@@ -7,20 +7,22 @@ import pandas as pd
 import numpy as np
 import os
 
+from sklearn.base import TransformerMixin, BaseEstimator
+
 from akiapplier.data.make_dataset import AKIPreprocessor
 
-class AkiMemo:
 
-    def __init__(self,data:pd.DataFrame):
-        self.data = data
+class AkiMemo(BaseEstimator,TransformerMixin):
         
+    def fit(self,X: pd.DataFrame):
+        return self
     
-    def __call__(self, grouper:str = 'pat_id',*args: Any, **kwds: Any):
+    def transform(self, X:pd.DataFrame, grouper:str = 'pat_id'):
                 
-        results = self.data.groupby(grouper).apply(self._run_aki)
+        results = X.groupby(grouper).apply(self._run_aki)
         results.columns = ['aki_o','aki_s','aki_m','aki_l']
-        return pd.concat([self.data,results],axis = 1)
-
+        return pd.concat([X,results],axis = 1)
+    
     def _run_aki(self,x):
         return x.apply(self._apply_aki_memo,axis = 1,**{'df':x},result_type = 'expand')
 
@@ -53,30 +55,3 @@ class AkiMemo:
             
         return np.any(outcome), aki_s, aki_m, aki_l
     
-
-if __name__ == '__main__':
-    log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.INFO, format=log_fmt)
-
-    # not used in this stub but often useful for finding various files
-    project_dir = Path(__file__).resolve().parents[2]
-
-    # find .env automagically by walking up directories until it's found, then
-    # load up the .env entries as environment variables
-    load_dotenv(find_dotenv())
-    PROC_DATA = os.getenv("ProcData")
-    if not os.path.exists(PROC_DATA):
-        
-        ORG_DATA = os.getenv("OrgData")
-        pat_cols=['pat_id','gender','age','deceased','ed_visit_dt','hos_date','opnameduur','opname','SEH_Arrival_dt']
-        creat_cols=['pat_id','ed_visit_dt','lab_result','afnametijd','lab_dt','lab_testunit']
-        ap = AKIPreprocessor(ORG_DATA)
-        out_data = ap(pat_cols=pat_cols, creat_cols=creat_cols).reset_index(drop = True)
-        out_data.to_feather(PROC_DATA)
-    
-    AKILABELDATA = os.getenv("AkiLabelData")
-    aki_app = AkiMemo(out_data)
-    processed_data = aki_app()
-    processed_data.to_feather(AKILABELDATA)
-
-

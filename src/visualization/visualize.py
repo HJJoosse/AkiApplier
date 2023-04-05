@@ -5,6 +5,7 @@ import seaborn as sns
 import plotly.graph_objects as go
 import matplotlib_venn as plv
 import tableone as tb
+import os
 
 class AKIVisualizer:
 
@@ -43,4 +44,3 @@ class AKIVisualizer:
         nonnormal = ['lab_result']
         mytable  = tb.TableOne(self.data,columns,categorical,groupby,nonnormal)
         return mytable
-
