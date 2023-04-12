@@ -59,9 +59,9 @@ class AKIPreprocessor:
         """
         self.logger.info('merging data')
         self.creat_data = self.creat_data.drop_duplicates(subset= ['pat_id','lab_dt','lab_result']).reset_index(drop=True)
-        self.merged_data = pd.merge_asof(left=self.pat_data.sort_values(by = 'SEH_Arrival_dt'),
-                                         right=self.creat_data.sort_values(by = 'lab_dt'),
-                                         left_on='SEH_Arrival_dt',right_on='lab_dt',by='pat_id',direction='forward')
+        self.merged_data = pd.merge_asof(right=self.pat_data.sort_values(by = 'SEH_Arrival_dt'),
+                                         left=self.creat_data.sort_values(by = 'lab_dt'),
+                                         right_on='SEH_Arrival_dt',left_on='lab_dt',by='pat_id')
         self.merged_data = self.merged_data.sort_values(by = ['pat_id','lab_dt'])
 
     def fetch_data(self,pat_cols:list, creat_cols:list):
