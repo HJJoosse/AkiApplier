@@ -35,9 +35,9 @@ class AkiMemo(BaseEstimator,TransformerMixin):
         outcome = []
         aki_s,aki_m,aki_l = np.nan, np.nan, np.nan
 
-        s_i = pd.Timedelta(2*24,unit = 'h')
-        m_i = pd.Timedelta(7*24,unit = 'h')
-        l_i = pd.Timedelta(365*24,unit = 'h')
+        s_i = pd.Timedelta(2,unit = 'd')
+        m_i = pd.Timedelta(7,unit = 'd')
+        l_i = pd.Timedelta(365,unit = 'd')
 
         if np.any((df.lab_dt >= (row.lab_dt-m_i))& (df.lab_dt < row.lab_dt)):
             aki_s = np.any((row.lab_result - df.loc[(df.lab_dt >= (row.lab_dt-s_i))

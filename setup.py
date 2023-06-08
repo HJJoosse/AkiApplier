@@ -19,3 +19,4 @@ setup(
     author='Huibert-Jan Joosse',
     license='MIT',
 )
+    
