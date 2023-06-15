@@ -35,7 +35,7 @@ class AkiMemo(BaseEstimator,TransformerMixin):
         outcome = []
         aki_s,aki_m,aki_l = np.nan, np.nan, np.nan
 
-        s_i = pd.Timedelta(2,unit = 'd')
+        s_i = pd.Timedelta(48,unit = 'h')
         m_i = pd.Timedelta(7,unit = 'd')
         l_i = pd.Timedelta(365,unit = 'd')
 
@@ -45,10 +45,16 @@ class AkiMemo(BaseEstimator,TransformerMixin):
             aki_m = np.any((row.lab_result/df.loc[(df.lab_dt >= (row.lab_dt-m_i))
                         & (df.lab_dt < row.lab_dt)].lab_result) >= 1.5)
             outcome += [aki_s,aki_m]
+            if aki_s:
+                baseline_time = df.loc[(row.lab_result - df.loc[(df.lab_dt >= (row.lab_dt-s_i))
+                        & (df.lab_dt < row.lab_dt)].lab_result) >= 26.5].lab_dt.iloc[-1]
 
         elif np.any((df.lab_dt >= (row.lab_dt-l_i)) & (df.lab_dt < row.lab_dt-m_i)):
             aki_l  = (row.lab_result/df.loc[(df.lab_dt >= (row.lab_dt-l_i))
                                 & (df.lab_dt < row.lab_dt-m_i)].lab_result.iloc[-1]) >= 1.5
+            if aki_l:
+                baseline_time = row.lab_dt - (row.lab_result/df.loc[(df.lab_dt >= (row.lab_dt-l_i))
+                                & (df.lab_dt < row.lab_dt-m_i)].lab_dt.iloc[-1])
             outcome.append(aki_l)
         else: 
             return np.nan, np.nan, np.nan, np.nan
