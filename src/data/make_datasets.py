@@ -5,6 +5,7 @@ from dotenv import find_dotenv, load_dotenv
 import pandas as pd
 import numpy as np
 import os
+import pyreadstat
 
 class AKIPreprocessor:
 
@@ -15,7 +16,7 @@ class AKIPreprocessor:
     def fetch_creat_data(self,creat_path:str):
         self.logger.info('loading and preprocessing the creatinine data')
 
-        creat_data = pd.read_sas(creat_path,encoding='latin-1')
+        creat_data = pyreadstat.read_sas7bdat(creat_path)[0]
         
 
         if not hasattr(self,'id_col'):
@@ -34,12 +35,14 @@ class AKIPreprocessor:
             )
         
         creat_data = creat_data.dropna(subset = 'lab_result')
-        creat_data = creat_data.drop_duplicates(subset= ['pat_id','lab_dt','lab_result']).reset_index(drop=True)
+        creat_data = creat_data.drop_duplicates(subset= ['pat_id','lab_dt'],keep = 'first').reset_index(drop=True)
+        if 'ResRapport_dt' in creat_data.columns:
+            creat_data.loc[(creat_data.origin == 'SAL') & (creat_data.ResRapport_dt.notna()),'lab_dt'] = creat_data.loc[(creat_data.origin == 'SAL') & (creat_data.ResRapport_dt.notna()),'ResRapport_dt']
 
         return creat_data[['pat_id','lab_dt','lab_result','origin']]
     
     def fetch_pat_data(self,pat_path:str):
-        pat_data = pd.read_sas(pat_path,encoding = 'latin-1')
+        pat_data = pyreadstat.read_sas7bdat(pat_path)[0]
         
         if not hasattr(self,'id_col'):
             self.id_col = pat_data.columns[[i for i,c in enumerate(pat_data) if 'studyid' in c.lower()]][0]

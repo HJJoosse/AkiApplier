@@ -20,7 +20,7 @@ class AkiMemo(BaseEstimator,TransformerMixin):
     def transform(self, X:pd.DataFrame, grouper:str = 'pat_id'):
                 
         results = X.groupby(grouper).apply(self._run_aki)
-        results.columns = ['aki_o','aki_s','aki_m','aki_l']
+        results.columns = ['aki_o','aki_s','aki_m','aki_l','baseline_aki']
         return pd.concat([X,results],axis = 1)
     
     def _run_aki(self,x):
@@ -33,6 +33,7 @@ class AkiMemo(BaseEstimator,TransformerMixin):
         
         df = kwgs['df']
         outcome = []
+        baseline_time = np.nan
         aki_s,aki_m,aki_l = np.nan, np.nan, np.nan
 
         s_i = pd.Timedelta(48,unit = 'h')
@@ -46,18 +47,23 @@ class AkiMemo(BaseEstimator,TransformerMixin):
                         & (df.lab_dt < row.lab_dt)].lab_result) >= 1.5)
             outcome += [aki_s,aki_m]
             if aki_s:
-                baseline_time = df.loc[(row.lab_result - df.loc[(df.lab_dt >= (row.lab_dt-s_i))
-                        & (df.lab_dt < row.lab_dt)].lab_result) >= 26.5].lab_dt.iloc[-1]
+                ix = ((row.lab_result - df.loc[(df.lab_dt >= (row.lab_dt-s_i))
+                        & (df.lab_dt < row.lab_dt)].lab_result) >= 26.5).index[-1]
+                baseline_time = row.lab_dt - df.loc[ix].lab_dt
+            if aki_m: 
+                ix = ((row.lab_result/df.loc[(df.lab_dt >= (row.lab_dt-m_i))
+                        & (df.lab_dt < row.lab_dt)].lab_result) >= 1.5).index[-1]
+                baseline_time = row.lab_dt - df.loc[ix].lab_dt
 
         elif np.any((df.lab_dt >= (row.lab_dt-l_i)) & (df.lab_dt < row.lab_dt-m_i)):
             aki_l  = (row.lab_result/df.loc[(df.lab_dt >= (row.lab_dt-l_i))
                                 & (df.lab_dt < row.lab_dt-m_i)].lab_result.iloc[-1]) >= 1.5
             if aki_l:
-                baseline_time = row.lab_dt - (row.lab_result/df.loc[(df.lab_dt >= (row.lab_dt-l_i))
-                                & (df.lab_dt < row.lab_dt-m_i)].lab_dt.iloc[-1])
+                baseline_time = row.lab_dt - df.loc[(df.lab_dt >= (row.lab_dt-l_i))
+                                & (df.lab_dt < row.lab_dt-m_i)].lab_dt.iloc[-1]
             outcome.append(aki_l)
         else: 
-            return np.nan, np.nan, np.nan, np.nan
+            return np.nan, aki_s, aki_m, aki_l, baseline_time
             
-        return np.any(outcome), aki_s, aki_m, aki_l
+        return np.any(outcome), aki_s, aki_m, aki_l, baseline_time
     

@@ -12,7 +12,8 @@ setup(
     "seaborn",
     "python-dotenv",
     "plotly",
-    "scikit-learn"
+    "scikit-learn",
+    "pyreadstat"
     ],
     version='0.1.0',
     description='Applying KDIGO guidelines to creatinine data',
